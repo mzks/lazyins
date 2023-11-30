@@ -52,4 +52,8 @@ explicit_types = [('values', 'tinyint')]
 cur.register(values, names, explicit_types=explicit_types)
 ```
 
+## Detail option
+For string, default length is 40.
+If you need more, `cur.default_char_length = 100`.
+
 
