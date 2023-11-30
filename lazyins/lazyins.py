@@ -16,8 +16,8 @@ class Cursor:
         self.conn = pymysql.connect(**self.login)
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
-        self.db_name = db_name if db_name else 'qsc_test'
-        self.table_name = table_name if table_name else 'table'
+        self.db_name = db_name if db_name else 'dummy_dababase'
+        self.table_name = table_name if table_name else 'dummy_table'
 
         self.names = None
         self.types = None

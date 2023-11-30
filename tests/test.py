@@ -1,7 +1,7 @@
 from lazyins import Cursor
 
 
-table_name = 'test_table'
+table_name = 'test_table2_'
 
 names = ['i1', 'i2', 'f1', 'st1']
 values  = [1, 2, 3.4, 'hello!']
@@ -27,3 +27,9 @@ cur4.table_name = table_name + '4'
 data = list(zip(names, values))
 cur4.register(data, explicit_types=explicit_types)
 
+
+from datetime import datetime
+now = datetime.now()
+cur5 = Cursor()
+cur5.table_name = table_name + '5'
+cur5.register([1, now], ['num', 'log_date'])
