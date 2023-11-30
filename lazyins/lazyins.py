@@ -43,6 +43,10 @@ class Cursor:
             print('Numbers of names and types are not match.')
             return
 
+        if 'unknown' in l:
+            print('Unknown type(s) are included.')
+            return
+
         for e in explicit_types:
             index = names.index(e[0])
             self.types[index] = e[1]
