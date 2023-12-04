@@ -43,7 +43,7 @@ class Cursor:
             print('Numbers of names and types are not match.')
             return
 
-        if 'unknown' in l:
+        if 'unknown' in self.types:
             print('Unknown type(s) are included.')
             return
 
