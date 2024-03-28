@@ -1,7 +1,7 @@
 # lazyins
-A stupid MySQL insert helper
+A stupid database insert helper
 
-This tool makes MySQL table with the values, then insert the values.
+This tool makes MySQL/SQLite table with the values, then insert the values.
 
 # Install
 ```
@@ -9,25 +9,27 @@ python -m pip install lazyins
 ```
 
 # Usage
-Set environment variables to connect your database.
+Set environment variables to connect your mysql database.
 ```
 export LAZYINS_HOST="localhost"
 export LAZYINS_PORT=3306
 export LAZYINS_USER="root"
 export LAZYINS_PASSWD="password"
 ````
+You don't need this setting for SQLite database.
 
 Then make cursor.
 ```
 from lazyins import Cursor
-cur = Cursor()
+cur = Cursor()  # default : mysql
+# cur = Cursor(db='sqlite', db_name='your_db.db', table_name='your_table')  # sqlite option
 ```
 
-This `Cursor()` function also recieves `host`, `port`, `user`, `passwd`, `db_name`, and `table_name` as arguments.
+This `Cursor()` function also recieves `db`, `host`, `port`, `user`, `passwd`, `db_name`, and `table_name` as arguments.
 
 
 ## Case 1
-If you have two list to insert MySQL database.
+If you have two list to insert database.
 ```
 names = ['value1', 'value2', 'value3']
 values = [1, 2, 3.3]
@@ -52,7 +54,7 @@ explicit_types = [('values', 'tinyint')]
 cur.register(values, names, explicit_types=explicit_types)
 ```
 
-## Detail option
+## Detail options
 For string, default length is 40.
 If you need more, `cur.default_char_length = 100`.
 
