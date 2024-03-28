@@ -1,27 +1,39 @@
-import os
+import os, sys
 from datetime import datetime
-import pymysql
+import sqlite3
 
 class Cursor:
 
-    def __init__(self, host='localhost', port=3306, user='root', passwd='password', db_name=None, table_name=None):
+    def __init__(self, db='mysql', host='localhost', port=3306, user='root', passwd='password', 
+                 db_name=None, table_name=None, default_char_length=40):
 
-        self.login = {
+
+        self.login = {  # For mysql
                 "host" : os.getenv('LAZYINS_HOST') if os.getenv('LAZYINS_HOST') else host,
                 "port" : int(os.getenv('LAZYINS_PORT')) if os.getenv('LAZYINS_PORT') else port,
                 "user" : os.getenv('LAZYINS_USER') if os.getenv('LAZYINS_USER') else user,
                 "passwd" : os.getenv('LAZYINS_PASSWD') if os.getenv('LAZYINS_PASSWD') else passwd,
                 "autocommit" : True
                 }
-        self.conn = pymysql.connect(**self.login)
-        self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
-
         self.db_name = db_name if db_name else 'dummy_dababase'
         self.table_name = table_name if table_name else 'dummy_table'
 
+
+        if db == 'mysql':
+            import pymysql
+            self.conn = pymysql.connect(**self.login)
+            self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
+        elif db == 'sqlite':
+            self.conn = sqlite3.connect(self.db_name, isolation_level=None)  # isolation_level for auto-commit
+            self.cursor = self.conn.cursor()
+        else:
+            sys.exit("Error: Select database with db= , options mysql and sqlite")
+        self.db = db
+
+
         self.names = None
         self.types = None
-        self.default_char_length = 40
+        self.default_char_length = default_char_length
         self.before_initial_execute = True
 
 
@@ -52,26 +64,39 @@ class Cursor:
             self.types[index] = e[1]
 
 
-        self.table_query = 'CREATE TABLE IF NOT EXISTS {} '.format(self.table_name)
-        self.table_query += '(id int auto_increment, time TIMESTAMP not null default CURRENT_TIMESTAMP,'        
+        if self.db == 'mysql':
+            self.table_query = 'CREATE TABLE IF NOT EXISTS {} '.format(self.table_name)
+            self.table_query += '(id int auto_increment, time TIMESTAMP not null default CURRENT_TIMESTAMP,'        
+            for n, t in zip(self.names, self.types):
+                self.table_query += ' {} {},'.format(n, t)
+            self.table_query += ' PRIMARY KEY (id));'
 
-        for n, t in zip(self.names, self.types):
-            self.table_query += ' {} {},'.format(n, t)
-
-        self.table_query += ' INDEX time_index (time), PRIMARY KEY (id));'
+        elif self.db == 'sqlite':
+            self.table_query = 'CREATE TABLE IF NOT EXISTS {} '.format(self.table_name)
+            self.table_query += '(id integer primary key autoincrement, time TIMESTAMP not null default CURRENT_TIMESTAMP,'        
+            for n, t in zip(self.names, self.types):
+                self.table_query += ' {} {},'.format(n, t)
+            self.table_query = self.table_query[:-1]
+            self.table_query += ' );'
 
         insert_query = 'INSERT INTO {} ('.format(self.table_name)
         for c in names:
             insert_query += c + ','
         insert_query = insert_query[:-1] + ')'
-        insert_query += ' VALUES (' + '%s,' * len(names)
+        if self.db == 'mysql':
+            format_code = '%s'
+        elif self.db == 'sqlite':
+            format_code = '?'
+        insert_query += ' VALUES (' + (format_code + ',') * len(names)
         self.insert_query = insert_query[:-1] + ')'
 
         
-        print(self.table_name)
-        self.cursor.execute("CREATE DATABASE IF NOT EXISTS {};".format(self.db_name))
-        self.cursor.execute("USE {};".format(self.db_name))
+        if self.db != 'sqlite':
+            self.cursor.execute("CREATE DATABASE IF NOT EXISTS {};".format(self.db_name))
+            self.cursor.execute("USE {};".format(self.db_name))
+
         self.cursor.execute(self.table_query)
+        self.cursor.execute(f'CREATE INDEX IF NOT EXISTS time_index ON {self.table_name} (time);')
 
         self.before_initial_execute = False
 
