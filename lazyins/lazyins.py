@@ -58,7 +58,7 @@ class Cursor:
         for n, t in zip(self.names, self.types):
             self.table_query += ' {} {},'.format(n, t)
 
-        self.table_query += ' PRIMARY KEY (id));'
+        self.table_query += ' INDEX time_index (time), PRIMARY KEY (id));'
 
         insert_query = 'INSERT INTO {} ('.format(self.table_name)
         for c in names:
