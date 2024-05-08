@@ -96,7 +96,11 @@ class Cursor:
             self.cursor.execute("USE {};".format(self.db_name))
 
         self.cursor.execute(self.table_query)
-        self.cursor.execute(f'CREATE INDEX IF NOT EXISTS time_index ON {self.table_name} (time);')
+
+        self.cursor.execute(f"SHOW INDEX FROM {self.table_name} WHERE Key_name = 'time_index'")
+        index_exists = bool(self.cursor.fetchone())
+        if not index_exists:
+            self.cursor.execute(f'CREATE INDEX time_index ON {self.table_name} (time)')
 
         self.before_initial_execute = False
 
